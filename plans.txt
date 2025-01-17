@@ -1,0 +1,16 @@
+kernel -> tun iface [ => base64 => irc bot ]
+[ irc bot => base64 => ] tun iface -> kernel
+
+this software only handles the connection of "edges"!!
+it does not handle connecting to the internal network itself,
+which happens via other software implementing BGP.
+the only thing you will get access to is the 10.69.0.0/24 subnet!
+
+receiving L2 packets (IP)
+
+docker run --name ircd --network host -p 6667:6667 inspircd/inspircd-docker
+
+export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+
+can receive on linux - does not reply on irc but did before?
+nvm just `modprobe tun`

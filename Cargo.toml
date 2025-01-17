@@ -1,0 +1,22 @@
+[package]
+name = "ip2irc"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.95"
+async-compat = "0.2.4"
+base64 = "0.22.1"
+flume = "0.11.1"
+irc = { version = "1.0.0", default-features = false, features = [
+    "channel-lists",
+    "ctcp",
+    "tls-rust",
+] }
+macro_rules_attribute = "0.2.0"
+serde = { version = "1.0.217", features = ["derive"] }
+smol = "2.0.2"
+smol-macros = "0.1.1"
+toml = "0.8.19"
+tracing = "0.1.41"
+tun = "0.7.10"

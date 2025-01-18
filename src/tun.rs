@@ -22,7 +22,7 @@ pub fn listen_iface<T: IntoBytes<N>, const N: usize>(dev: &mut Reader, tx: &Send
     loop {
         // todo: use async read? yes
         let amount = dev.read(&mut buf).expect("failed to read into buf");
-        println!("{:x?}", &buf[0..amount]);
+        // println!("{:x?}", &buf[0..amount]);
         tx.send(IntoBytes::from_buf(buf, amount))
             .expect("channel is dead on write!");
     }

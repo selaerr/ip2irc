@@ -26,8 +26,8 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
     let mut buf = [0; N];
     smol::future::block_on(Compat::new(async {
         while let Some(message) = stream.next().await.transpose().expect("damn wtf happened") {
-            if let Command::PRIVMSG(chan, msg) = message.command {
-                println!("received {msg:?} from {chan:?}");
+            if let Command::PRIVMSG(_chan, msg) = message.command {
+                // println!("received {msg:?} from {chan:?}");
                 let read = BASE64_STANDARD
                     .decode_slice(msg.as_bytes(), buf.as_mut_slice())
                     .expect("failed to decode message");

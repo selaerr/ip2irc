@@ -7,7 +7,7 @@ use irc::{
 };
 use smol::stream::StreamExt;
 
-use crate::bytes::{FromBytes, IntoBytes};
+use crate::bytes::{AsBytes, IntoBytes};
 
 pub async fn init_irc_client(config: Config) -> anyhow::Result<Client> {
     // todo: move config into main
@@ -27,7 +27,7 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
     smol::future::block_on(Compat::new(async {
         while let Some(message) = stream.next().await.transpose().expect("damn wtf happened") {
             if let Command::PRIVMSG(chan, msg) = message.command {
-                println!("received {:?} from {:?}", msg, chan);
+                println!("received {msg:?} from {chan:?}");
                 let read = BASE64_STANDARD
                     .decode_slice(msg.as_bytes(), buf.as_mut_slice())
                     .expect("failed to decode message");
@@ -38,9 +38,9 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
     }));
 }
 
-pub async fn write_irc<T: FromBytes>(sender: irc::client::Sender, recv: Receiver<T>) {
+pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T>) {
     while let Ok(data) = recv.recv() {
-        let enc = BASE64_STANDARD.encode(data.into_slice());
+        let enc = BASE64_STANDARD.encode(data.as_slice());
         sender
             .send_privmsg("#test", enc)
             .expect("failed to send irc message");

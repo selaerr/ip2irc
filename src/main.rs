@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use ::irc::client::data::Config;
 use ::tun::AbstractDevice;
 use bytes::FrameN;
@@ -20,7 +21,7 @@ type Frame = FrameN<MTU>;
 #[apply(main!)]
 async fn main(ex: &Executor<'_>) {
     let conf = parse_config("ip2irc_config.toml").await.unwrap();
-    println!("{:?}", conf);
+    println!("{conf:?}");
 
     let irc_config = Config {
         username: Some(conf.irc.username),
@@ -60,8 +61,8 @@ async fn main(ex: &Executor<'_>) {
     let irc_listener_thread = ex.spawn(listen_irc::<Frame, MTU>(stream, tx_to_dev));
     let irc_writer_thread = ex.spawn(write_irc(sender, rx_from_dev));
     let tun_listener_thread =
-        ex.spawn(async move { listen_iface::<Frame, MTU>(&mut read_dev, tx_to_irc) });
-    let tun_writer_thread = ex.spawn(async move { write_iface(&mut write_dev, rx_from_irc) });
+        ex.spawn(async move { listen_iface::<Frame, MTU>(&mut read_dev, &tx_to_irc) });
+    let tun_writer_thread = ex.spawn(async move { write_iface(&mut write_dev, &rx_from_irc) });
 
     // await two futures at once
     let tun = race(tun_listener_thread, tun_writer_thread);

@@ -18,8 +18,9 @@ pub trait IntoBytes<const N: usize> {
     fn from_buf(buf: [u8; N], len: usize) -> Self;
 }
 
-pub trait FromBytes {
-    fn into_slice(&self) -> &[u8];
+pub trait AsBytes {
+    #[allow(clippy::wrong_self_convention)]
+    fn as_slice(&self) -> &[u8];
 }
 
 impl<const N: usize, const M: usize> IntoBytes<M> for FrameN<N> {
@@ -31,8 +32,8 @@ impl<const N: usize, const M: usize> IntoBytes<M> for FrameN<N> {
     }
 }
 
-impl<const N: usize> FromBytes for FrameN<N> {
-    fn into_slice(&self) -> &[u8] {
+impl<const N: usize> AsBytes for FrameN<N> {
+    fn as_slice(&self) -> &[u8] {
         &self.data[0..self.data_len]
     }
 }

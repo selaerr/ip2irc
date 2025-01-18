@@ -7,9 +7,9 @@
 /// `N`: MTU (size of buffer)
 pub struct FrameN<const N: usize> {
     // in order to not send an MTU-sized frame each time
-    // "b-but muh extra byte!!!"
+    // "b-but muh extra bytes!!!"
     // shut the fuck up
-    data_len: u8,
+    data_len: usize,
     data: [u8; N], // MTU
 }
 
@@ -25,7 +25,7 @@ pub trait FromBytes {
 impl<const N: usize, const M: usize> IntoBytes<M> for FrameN<N> {
     fn from_buf(buf: [u8; M], len: usize) -> Self {
         Self {
-            data_len: (len as u8),
+            data_len: len,
             data: buf[0..N].try_into().unwrap(),
         }
     }
@@ -33,6 +33,6 @@ impl<const N: usize, const M: usize> IntoBytes<M> for FrameN<N> {
 
 impl<const N: usize> FromBytes for FrameN<N> {
     fn into_slice(&self) -> &[u8] {
-        &self.data[0..(self.data_len as usize)]
+        &self.data[0..self.data_len]
     }
 }

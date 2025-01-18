@@ -61,8 +61,7 @@ async fn main(ex: &Executor<'_>) {
     let irc_writer_thread = ex.spawn(write_irc(sender, rx_from_dev));
     let tun_listener_thread =
         ex.spawn(async move { listen_iface::<Frame, MTU>(&mut read_dev, tx_to_irc) });
-    let tun_writer_thread =
-        ex.spawn(async move { write_iface::<Frame>(&mut write_dev, rx_from_irc) });
+    let tun_writer_thread = ex.spawn(async move { write_iface(&mut write_dev, rx_from_irc) });
 
     // await two futures at once
     let tun = race(tun_listener_thread, tun_writer_thread);

@@ -2,3 +2,4 @@
 .gitignore
 .DS_Store
 ip2irc_config.toml
+profile.json

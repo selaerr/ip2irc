@@ -66,7 +66,7 @@ pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T
             delay = delay.saturating_sub(burst);
             // if the delay has elapsed:
             if delay.is_zero() {
-                // on every message sent, add `delay` to the delay timing
+                // on every message sent, add `sub` to the delay timing
                 time = std::cmp::max(time, Instant::now()) + sub;
                 sender
                     .send_privmsg("#test", msg)
@@ -74,7 +74,6 @@ pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T
             } else {
                 // still need to wait more, so just push it back into the queue
                 queue.push_front(msg);
-                Timer::after(delay);
             }
         }
     }

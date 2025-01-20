@@ -1,3 +1,8 @@
+use std::{
+    collections::VecDeque,
+    time::{Duration, Instant},
+};
+
 use async_compat::Compat;
 use base64::prelude::*;
 use flume::{Receiver, Sender};
@@ -5,7 +10,7 @@ use irc::{
     client::{Client, ClientStream, data::Config},
     proto::Command,
 };
-use smol::stream::StreamExt;
+use smol::{Timer, stream::StreamExt};
 
 use crate::bytes::{AsBytes, IntoBytes};
 
@@ -28,21 +33,49 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
         while let Some(message) = stream.next().await.transpose().expect("damn wtf happened") {
             if let Command::PRIVMSG(_chan, msg) = message.command {
                 // println!("received {msg:?} from {chan:?}");
-                let read = BASE64_STANDARD
-                    .decode_slice(msg.as_bytes(), buf.as_mut_slice())
-                    .expect("failed to decode message");
-                tx.send(IntoBytes::from_buf(buf, read))
+                let read = BASE64_STANDARD.decode_slice(msg.as_bytes(), buf.as_mut_slice()); // just ignore messages that aren't ok
+                if read.is_err() {
+                    continue;
+                }
+                tx.send(IntoBytes::from_buf(buf, read.unwrap()))
                     .expect("failed to transmit to channel");
             }
         }
     }));
 }
 
+// todo: test ratelimiting
 pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T>) {
-    while let Ok(data) = recv.recv() {
-        let enc = BASE64_STANDARD.encode(data.as_slice());
-        sender
-            .send_privmsg("#test", enc)
-            .expect("failed to send irc message");
+    let mut queue = VecDeque::new();
+    // time between messages
+    // todo: make this configurable
+    let sub = Duration::from_millis(200);
+    // burstable messages
+    let burst = 6 * sub;
+    // time at which delay is over
+    let mut time = Instant::now();
+    loop {
+        if let Ok(data) = recv.recv() {
+            let enc = BASE64_STANDARD.encode(data.as_slice());
+            queue.push_back(enc);
+        }
+        if let Some(msg) = queue.pop_front() {
+            // check if delay has elapsed. if so, will return zero.
+            let mut delay = time.saturating_duration_since(Instant::now());
+            // subtract bursting time
+            delay = delay.saturating_sub(burst);
+            // if the delay has elapsed:
+            if delay.is_zero() {
+                // on every message sent, add `delay` to the delay timing
+                time = std::cmp::max(time, Instant::now()) + sub;
+                sender
+                    .send_privmsg("#test", msg)
+                    .expect("failed to send irc msg");
+            } else {
+                // still need to wait more, so just push it back into the queue
+                queue.push_front(msg);
+                Timer::after(delay);
+            }
+        }
     }
 }

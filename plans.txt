@@ -14,3 +14,9 @@ export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
 
 can receive on linux - does not reply on irc but did before?
 nvm just `modprobe tun`
+
+turns out we have a flooding issue, leading to the clients being disconnected
+due to having recvqs which are too large. current irc library doesn't support
+ratelimiting, but another one called vinezombie seems to do it.
+nvm - seems like a pain to use vinezombie. this library is okay. time to
+implement ratelimiting on the thread that sends messages, ig!

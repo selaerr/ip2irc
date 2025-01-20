@@ -19,7 +19,6 @@ pub trait IntoBytes<const N: usize> {
 }
 
 pub trait AsBytes {
-    #[allow(clippy::wrong_self_convention)]
     fn as_slice(&self) -> &[u8];
 }
 

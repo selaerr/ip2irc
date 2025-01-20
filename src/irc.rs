@@ -10,7 +10,7 @@ use irc::{
     client::{Client, ClientStream, data::Config},
     proto::Command,
 };
-use smol::{Timer, stream::StreamExt};
+use smol::stream::StreamExt;
 
 use crate::bytes::{AsBytes, IntoBytes};
 
@@ -33,7 +33,8 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
         while let Some(message) = stream.next().await.transpose().expect("damn wtf happened") {
             if let Command::PRIVMSG(_chan, msg) = message.command {
                 // println!("received {msg:?} from {chan:?}");
-                let read = BASE64_STANDARD.decode_slice(msg.as_bytes(), buf.as_mut_slice()); // just ignore messages that aren't ok
+                let read = BASE64_STANDARD.decode_slice(msg.as_bytes(), buf.as_mut_slice());
+                // just ignore messages that aren't ok
                 if read.is_err() {
                     continue;
                 }

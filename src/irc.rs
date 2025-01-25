@@ -1,7 +1,4 @@
-use std::{
-    collections::VecDeque,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 use async_compat::Compat;
 use base64::prelude::*;
@@ -45,22 +42,17 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
     }));
 }
 
-// todo: test ratelimiting
 pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T>) {
-    let mut queue = VecDeque::new();
     // time between messages
     // todo: make this configurable
-    let sub = Duration::from_millis(200);
+    let sub = Duration::from_millis(100);
     // burstable messages
-    let burst = 6 * sub;
+    let burst = 10 * sub;
     // time at which delay is over
     let mut time = Instant::now();
     loop {
         if let Ok(data) = recv.recv() {
-            let enc = BASE64_STANDARD.encode(data.as_slice());
-            queue.push_back(enc);
-        }
-        if let Some(msg) = queue.pop_front() {
+            let msg = BASE64_STANDARD.encode(data.as_slice());
             // check if delay has elapsed. if so, will return zero.
             let mut delay = time.saturating_duration_since(Instant::now());
             // subtract bursting time
@@ -73,8 +65,7 @@ pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T
                     .send_privmsg("#test", msg)
                     .expect("failed to send irc msg");
             } else {
-                // still need to wait more, so just push it back into the queue
-                queue.push_front(msg);
+                drop(msg);
             }
         }
     }

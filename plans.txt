@@ -20,3 +20,5 @@ due to having recvqs which are too large. current irc library doesn't support
 ratelimiting, but another one called vinezombie seems to do it.
 nvm - seems like a pain to use vinezombie. this library is okay. time to
 implement ratelimiting on the thread that sends messages, ig!
+
+the connection doesn't get killed now, but iperf3 still dies after the first round

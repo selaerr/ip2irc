@@ -18,6 +18,8 @@ pub struct IrcConfiguration {
     pub channels: Vec<String>,
     pub port: u16,
     pub tls: bool,
+    pub message_delay_millis: u64,
+    pub burst_messages: u32,
 }
 
 #[derive(Deserialize, Debug)]

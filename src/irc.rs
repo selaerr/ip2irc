@@ -42,12 +42,17 @@ pub async fn listen_irc<T: IntoBytes<N>, const N: usize>(mut stream: ClientStrea
     }));
 }
 
-pub async fn write_irc<T: AsBytes>(sender: irc::client::Sender, recv: Receiver<T>) {
+pub async fn write_irc<T: AsBytes>(
+    sender: irc::client::Sender,
+    recv: Receiver<T>,
+    delay: u64,
+    burst: u32,
+) {
     // time between messages
     // todo: make this configurable
-    let sub = Duration::from_millis(100);
+    let sub = Duration::from_millis(delay);
     // burstable messages
-    let burst = 10 * sub;
+    let burst = burst * sub;
     // time at which delay is over
     let mut time = Instant::now();
     loop {

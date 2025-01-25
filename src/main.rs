@@ -59,7 +59,12 @@ async fn main(ex: &Executor<'_>) {
     let (tx_to_irc, rx_from_dev) = unbounded::<Frame>();
 
     let irc_listener_thread = ex.spawn(listen_irc::<Frame, MTU>(stream, tx_to_dev));
-    let irc_writer_thread = ex.spawn(write_irc(sender, rx_from_dev));
+    let irc_writer_thread = ex.spawn(write_irc(
+        sender,
+        rx_from_dev,
+        conf.irc.message_delay_millis,
+        conf.irc.burst_messages,
+    ));
     let tun_listener_thread =
         ex.spawn(async move { listen_iface::<Frame, MTU>(&mut read_dev, &tx_to_irc) });
     let tun_writer_thread = ex.spawn(async move { write_iface(&mut write_dev, &rx_from_irc) });
